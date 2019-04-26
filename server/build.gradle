@@ -1,0 +1,61 @@
+plugins {
+	id 'org.springframework.boot' version '2.1.4.RELEASE'
+	id 'java'
+	id "com.google.protobuf" version "0.8.8"
+}
+
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'idea'
+
+group = 'me.maxpeng.demo'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'io.github.lognet:grpc-spring-boot-starter:3.2.2'
+}
+
+protobuf {
+	protoc {
+		// The artifact spec for the Protobuf Compiler
+		artifact = 'com.google.protobuf:protoc:3.7.1'
+	}
+
+	plugins {
+		// Optional: an artifact spec for a protoc plugin, with "grpc" as
+		// the identifier, which can be referred to in the "plugins"
+		// container of the "generateProtoTasks" closure.
+		grpc {
+			artifact = 'io.grpc:protoc-gen-grpc-java:1.20.0'
+		}
+	}
+
+	generateProtoTasks {
+		ofSourceSet('main')*.plugins {
+			// Apply the "grpc" plugin whose spec is defined above, without
+			// options.  Note the braces cannot be omitted, otherwise the
+			// plugin will not be added. This is because of the implicit way
+			// NamedDomainObjectContainer binds the methods.
+			grpc { }
+		}
+	}
+
+	generatedFilesBaseDir = "$projectDir/proto-gen"
+}
+
+clean {
+	delete protobuf.generatedFilesBaseDir
+}
+
+sourceSets {
+	main {
+		java {
+			srcDirs = ["src/main/java", "proto-gen/main/java", "proto-gen/main/grpc"]
+		}
+	}
+}
